@@ -2,4 +2,4 @@ dependencies:
   espressif/button: "^3.2.0"
   mdvorak/double_reset: "^2.0.1"
   idf:
-    version: ">=4.1.0"
+    version: ">=5.2.0"
