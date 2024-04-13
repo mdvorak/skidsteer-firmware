@@ -4,6 +4,8 @@
 #include <ESP32PWM.h>
 #include <vector>
 
+// NOTE since board has hard power-off circuit, power switch needs to be held pressed during firmware upload
+
 // defines
 #define bucketServoPin 17
 #define auxServoPin 5
@@ -68,7 +70,7 @@ struct MOTOR_PINS {
     }
 };
 
-std::vector<MOTOR_PINS> motorPins = {
+std::vector <MOTOR_PINS> motorPins = {
         MOTOR_PINS(2, 4, 1.0),
         MOTOR_PINS(22, 12, 1.0),
         MOTOR_PINS(13, 21, 0.8),  //ARM_MOTOR pins
@@ -186,8 +188,8 @@ void processGamepad(ControllerPtr ctl) {
     int axisX = constrain(ctl->axisX(), -AXIS_MAX, AXIS_MAX);
     int axisY = constrain(ctl->axisY(), -AXIS_MAX, AXIS_MAX);
 
-    double leftMotor = (double)constrain(-axisY + axisX, -AXIS_MAX, AXIS_MAX) / (double)AXIS_MAX;
-    double rightMotor = (double)constrain(-axisY - axisX, -AXIS_MAX, AXIS_MAX) / (double)AXIS_MAX;
+    double leftMotor = (double) constrain(-axisY + axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
+    double rightMotor = (double) constrain(-axisY - axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
 
     //Serial.printf("%d/%d -> %.3f/%.3f %d\n", axisX, axisY, leftMotor, rightMotor, ctl->dpad());
 
@@ -238,7 +240,7 @@ void processGamepad(ControllerPtr ctl) {
 }
 
 void processControllers() {
-    for (auto ctrl : myControllers) {
+    for (auto ctrl: myControllers) {
         if (ctrl && ctrl->isConnected() && ctrl->hasData()) {
             processGamepad(ctrl);
         }
@@ -297,12 +299,13 @@ void setup() {
     // - Second one, which is a "virtual device", is a mouse.
     // By default, it is disabled.
     BP32.enableVirtualDevice(false);
+    BP32.enableBLEService(true);
     BP32.enableNewBluetoothConnections(true);
 }
 
 // Arduino loop function. Runs in CPU 1.
 void loop() {
-    static bool btn = true;
+    static bool btn = false;
     static int64_t btnPress = 0;
     if (!digitalRead(25)) {
         if (!btn) {
