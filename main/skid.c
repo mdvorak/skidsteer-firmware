@@ -23,7 +23,11 @@
 #define SKID_MOTOR_ARM_B_PIN (CONFIG_SKID_MOTOR_ARM_B_PIN)
 
 const ledc_timer_config_t motor_timer = {
+#if SOC_LEDC_SUPPORT_HS_MODE
         .speed_mode = LEDC_HIGH_SPEED_MODE,
+#else
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+#endif
         .timer_num  = SKID_MOTOR_TIMER,
         .duty_resolution = LEDC_TIMER_12_BIT,
         .freq_hz = SKID_MOTOR_PWM_FREQ,
