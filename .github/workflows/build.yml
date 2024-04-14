@@ -38,7 +38,7 @@ jobs:
           echo 'python -m esptool --chip esp32 -b 921600 --before default_reset --after hard_reset write_flash "@flash_args"' > build/flash.txt
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: skidsteer-firmware-${{ matrix.idf_target }}
           path: |
