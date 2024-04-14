@@ -3,7 +3,6 @@
 #include <esp_sleep.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <double_reset.h>
 #include <button_gpio.h>
 #include <nvs_flash.h>
 #include <driver/ledc.h>
@@ -29,9 +28,6 @@ _Noreturn void app_main() {
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-
-    bool reconfigure = false;
-    ESP_ERROR_CHECK(double_reset_start(&reconfigure, 5000));
 
     ESP_ERROR_CHECK(gpio_set_direction(GPIO_NUM_23, GPIO_MODE_OUTPUT));
     ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_23, 1));

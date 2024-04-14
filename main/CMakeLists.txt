@@ -4,8 +4,11 @@ idf_component_register(
         SRCS
         app_main.c
         INCLUDE_DIRS .
-        PRIV_REQUIRES
+        REQUIRES
         freertos
         nvs_flash
         button
+        bluepad32
+        console
+        driver
 )
