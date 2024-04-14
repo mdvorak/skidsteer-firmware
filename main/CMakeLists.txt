@@ -4,6 +4,7 @@ idf_component_register(
         SRCS
         app_main.c
         my_platform.c
+        skid.c
         INCLUDE_DIRS .
         REQUIRES
         freertos
