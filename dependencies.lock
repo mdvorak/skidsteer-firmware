@@ -39,6 +39,13 @@ dependencies:
     source:
       type: idf
     version: 5.2.1
-manifest_hash: 8044427ac7400ec2dd2bf9513c4a424bc9e0e61c5f8ea42e9f9530c7c956deb0
+  servo:
+    component_hash: a1bbe82ac690876fc8da9c0af8d65e2924e59686560563479f11d87a03454dcb
+    source:
+      git: https://github.com/espressif/esp-iot-solution.git
+      path: components/motor/servo
+      type: git
+    version: 5def8ba85aeb16cc3920898aff90e56a4968ac1a
+manifest_hash: c4e0973ad08b51dad4eefb9bcd97937d3960378ca9133e23610114beb2794b4c
 target: esp32
 version: 1.0.0

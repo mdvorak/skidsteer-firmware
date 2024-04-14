@@ -14,4 +14,5 @@ idf_component_register(
         btstack
         console
         driver
+        servo
 )

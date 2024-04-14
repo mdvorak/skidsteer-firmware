@@ -1,10 +1,10 @@
-config SKID_MOTOR_PWM_FREQ
-    int "PWM frequency for the motors"
-    default 100
-
 config SKID_POWER_PIN
     int "GPIO that must be HIGH at all times"
     default 23
+
+config SKID_MOTOR_PWM_FREQ
+    int "PWM frequency for the motors"
+    default 100
 
 config SKID_MOTOR_LEFT_A_PIN
     int "GPIO for the left motor A"
@@ -29,3 +29,11 @@ config SKID_MOTOR_ARM_A_PIN
 config SKID_MOTOR_ARM_B_PIN
     int "GPIO for the arm motor B"
     default 29
+
+config SKID_SERVO_BUCKET_PIN
+    int "GPIO for the bucket servo"
+    default 30
+
+config SKID_SERVO_AUX_PIN
+    int "GPIO for the aux servo"
+    default 31
