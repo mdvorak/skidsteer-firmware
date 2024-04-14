@@ -1,6 +1,7 @@
 #include <string.h>
 #include <uni.h>
 #include <parser/uni_hid_parser_wii.h>
+#include "skid.h"
 
 // Custom "instance"
 typedef struct my_platform_instance_s {
@@ -27,6 +28,14 @@ static void my_platform_init(int argc, const char **argv) {
 
 static void my_platform_on_init_complete(void) {
     logi("custom: on_init_complete()\n");
+
+    // Initial values
+    skid_motor_set(&SKID_MOTOR_LEFT, 0);
+    skid_motor_set(&SKID_MOTOR_RIGHT, 0);
+    skid_motor_set(&SKID_MOTOR_ARM, SKID_MOTOR_HOLD);
+
+    skid_servo_set(&SKID_SERVO_BUCKET, 90);
+    skid_servo_set(&SKID_SERVO_AUX, 170);
 
     // Listen
     uni_bt_enable_new_connections_unsafe(true);

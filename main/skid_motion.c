@@ -7,32 +7,60 @@
 
 static const char *TAG = "skid_motion";
 #define LEDC_MAX_VALUE(resolution) ((1 << resolution) - 1)
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-// Config
+// Motors
 static const ledc_mode_t SKID_MOTOR_TIMER_SPEED_MODE = 0; // 0 is HIGH_SPEED_MODE, if available, otherwise its LOW_SPEED_MODE
 static const ledc_timer_t SKID_MOTOR_TIMER = LEDC_TIMER_0;
 static const ledc_timer_bit_t SKID_MOTOR_RESOLUTION = LEDC_TIMER_12_BIT;
-static const float SKID_MOTOR_PWM_MAX = LEDC_MAX_VALUE(SKID_MOTOR_RESOLUTION);
+static const uint32_t SKID_MOTOR_PWM_MAX = LEDC_MAX_VALUE(SKID_MOTOR_RESOLUTION);
 static const uint32_t SKID_MOTOR_PWM_FREQ = CONFIG_SKID_MOTOR_PWM_FREQ;
-static const ledc_channel_t SKID_MOTOR_LEFT_A_CHANNEL = LEDC_CHANNEL_0;
-static const gpio_num_t SKID_MOTOR_LEFT_A_PIN = CONFIG_SKID_MOTOR_LEFT_A_PIN;
-static const ledc_channel_t SKID_MOTOR_LEFT_B_CHANNEL = LEDC_CHANNEL_1;
-static const gpio_num_t SKID_MOTOR_LEFT_B_PIN = CONFIG_SKID_MOTOR_LEFT_B_PIN;
-static const ledc_channel_t SKID_MOTOR_RIGHT_A_CHANNEL = LEDC_CHANNEL_2;
-static const gpio_num_t SKID_MOTOR_RIGHT_A_PIN = CONFIG_SKID_MOTOR_RIGHT_A_PIN;
-static const ledc_channel_t SKID_MOTOR_RIGHT_B_CHANNEL = LEDC_CHANNEL_3;
-static const gpio_num_t SKID_MOTOR_RIGHT_B_PIN = CONFIG_SKID_MOTOR_RIGHT_B_PIN;
-static const ledc_channel_t SKID_MOTOR_ARM_A_CHANNEL = LEDC_CHANNEL_4;
-static const gpio_num_t SKID_MOTOR_ARM_A_PIN = CONFIG_SKID_MOTOR_ARM_A_PIN;
-static const ledc_channel_t SKID_MOTOR_ARM_B_CHANNEL = LEDC_CHANNEL_5;
-static const gpio_num_t SKID_MOTOR_ARM_B_PIN = CONFIG_SKID_MOTOR_ARM_B_PIN;
 
+typedef struct skid_motor_channel {
+    ledc_channel_t channel;
+    gpio_num_t pin;
+} skid_motor_channel_t;
+
+typedef struct skid_motor {
+    skid_motor_channel_t a;
+    skid_motor_channel_t b;
+} skid_motor_t;
+
+const float SKID_MOTOR_HOLD = 999;
+const skid_motor_t SKID_MOTOR_LEFT = {
+        .a = {LEDC_CHANNEL_0, (CONFIG_SKID_MOTOR_LEFT_A_PIN)},
+        .b = {LEDC_CHANNEL_1, (CONFIG_SKID_MOTOR_LEFT_B_PIN)},
+};
+const skid_motor_t SKID_MOTOR_RIGHT = {
+        .a = {LEDC_CHANNEL_2, (CONFIG_SKID_MOTOR_RIGHT_A_PIN)},
+        .b = {LEDC_CHANNEL_3, (CONFIG_SKID_MOTOR_RIGHT_B_PIN)},
+};
+const skid_motor_t SKID_MOTOR_ARM = {
+        .a = {LEDC_CHANNEL_4, (CONFIG_SKID_MOTOR_ARM_A_PIN)},
+        .b = {LEDC_CHANNEL_5, (CONFIG_SKID_MOTOR_ARM_B_PIN)},
+};
+static const skid_motor_t *SKID_MOTORS[] = {&SKID_MOTOR_LEFT, &SKID_MOTOR_RIGHT, &SKID_MOTOR_ARM};
+
+// Servos
+static const ledc_mode_t SKID_SERVO_SPEED_MODE = LEDC_LOW_SPEED_MODE;
 static const ledc_timer_t SKID_SERVO_TIMER = LEDC_TIMER_1;
-static const ledc_channel_t SKID_SERVO_BUCKET_CHANNEL = LEDC_CHANNEL_6;
-static const gpio_num_t SKID_SERVO_BUCKET_PIN = CONFIG_SKID_SERVO_BUCKET_PIN;
-static const ledc_channel_t SKID_SERVO_AUX_CHANNEL = LEDC_CHANNEL_7;
-static const gpio_num_t SKID_SERVO_AUX_PIN = CONFIG_SKID_SERVO_AUX_PIN;
+static const uint16_t SKID_SERVO_FREQ = 50;
+static const uint16_t SKID_SERVO_MIN_WIDTH_US = 1000;
+static const uint16_t SKID_SERVO_MAX_WIDTH_US = 2000;
+
+typedef struct skid_servo {
+    ledc_channel_t channel;
+    gpio_num_t pin;
+} skid_servo_t;
+
+const skid_servo_t SKID_SERVO_BUCKET = {
+        .channel = LEDC_CHANNEL_6,
+        .pin = (CONFIG_SKID_SERVO_BUCKET_PIN),
+};
+const skid_servo_t SKID_SERVO_AUX = {
+        .channel = LEDC_CHANNEL_7,
+        .pin = (CONFIG_SKID_SERVO_AUX_PIN),
+};
 
 
 // Config functions
@@ -61,14 +89,14 @@ static esp_err_t motor_channel_config(ledc_channel_t channel, gpio_num_t gpio_nu
 static servo_config_t servo_config() {
     return (servo_config_t) {
             .max_angle = 180,
-            .min_width_us = 1000,
-            .max_width_us = 2000,
-            .freq = 50,
+            .min_width_us = SKID_SERVO_MIN_WIDTH_US,
+            .max_width_us = SKID_SERVO_MAX_WIDTH_US,
+            .freq = SKID_SERVO_FREQ,
             .timer_number = SKID_SERVO_TIMER,
             .channel_number = 2,
             .channels = {
-                    .ch = {SKID_SERVO_BUCKET_CHANNEL, SKID_SERVO_AUX_CHANNEL},
-                    .servo_pin = {SKID_SERVO_BUCKET_PIN, SKID_SERVO_AUX_PIN},
+                    .ch = {SKID_SERVO_BUCKET.channel, SKID_SERVO_AUX.channel},
+                    .servo_pin = {SKID_SERVO_BUCKET.pin, SKID_SERVO_AUX.pin},
             }
     };
 }
@@ -81,33 +109,42 @@ void skid_motion_init() {
     ledc_timer_config_t motorTimerConfig = motor_timer_config();
     ESP_ERROR_CHECK(ledc_timer_config(&motorTimerConfig));
 
-    ESP_ERROR_CHECK(motor_channel_config(SKID_MOTOR_LEFT_A_CHANNEL, SKID_MOTOR_LEFT_A_PIN));
-    ESP_ERROR_CHECK(motor_channel_config(SKID_MOTOR_LEFT_B_CHANNEL, SKID_MOTOR_LEFT_B_PIN));
-    ESP_ERROR_CHECK(motor_channel_config(SKID_MOTOR_RIGHT_A_CHANNEL, SKID_MOTOR_RIGHT_A_PIN));
-    ESP_ERROR_CHECK(motor_channel_config(SKID_MOTOR_RIGHT_B_CHANNEL, SKID_MOTOR_RIGHT_B_PIN));
-    ESP_ERROR_CHECK(motor_channel_config(SKID_MOTOR_ARM_A_CHANNEL, SKID_MOTOR_ARM_A_PIN));
-    ESP_ERROR_CHECK(motor_channel_config(SKID_MOTOR_ARM_B_CHANNEL, SKID_MOTOR_ARM_B_PIN));
+    for (size_t i = 0; i < sizeof(SKID_MOTORS) / sizeof(SKID_MOTORS[0]); i++) {
+        const skid_motor_t *motor = SKID_MOTORS[i];
+        ESP_ERROR_CHECK(motor_channel_config(motor->a.channel, motor->a.pin));
+        ESP_ERROR_CHECK(motor_channel_config(motor->b.channel, motor->b.pin));
+    }
 
     // Servo config
     servo_config_t servoConfig = servo_config();
-    ESP_ERROR_CHECK(iot_servo_init(LEDC_LOW_SPEED_MODE, &servoConfig));
+    ESP_ERROR_CHECK(iot_servo_init(SKID_SERVO_SPEED_MODE, &servoConfig));
 
     ESP_LOGI(TAG, "configured");
 }
 
-static void motor_channel_set(ledc_channel_t channel, uint32_t duty) {
+static void skid_motor_channel_set(ledc_channel_t channel, uint32_t duty) {
     ESP_ERROR_CHECK(ledc_set_duty(SKID_MOTOR_TIMER_SPEED_MODE, channel, MAX(duty, SKID_MOTOR_PWM_MAX)));
     ESP_ERROR_CHECK(ledc_update_duty(SKID_MOTOR_TIMER_SPEED_MODE, channel));
 }
 
-static void motor_set(ledc_channel_t channelA, ledc_channel_t channelB, float dutyPercent) {
+void skid_motor_set(const skid_motor_t *motor, double dutyPercent) {
+    if (dutyPercent == SKID_MOTOR_HOLD) {
+        skid_motor_channel_set(motor->a.channel, SKID_MOTOR_PWM_MAX);
+        skid_motor_channel_set(motor->b.channel, SKID_MOTOR_PWM_MAX);
+        return;
+    }
+
     int32_t dutyValue = (int32_t) (dutyPercent * SKID_MOTOR_PWM_MAX);
 
     if (dutyValue < 0) {
-        motor_channel_set(channelA, 0);
-        motor_channel_set(channelB, abs(dutyValue));
+        skid_motor_channel_set(motor->a.channel, 0);
+        skid_motor_channel_set(motor->b.channel, abs(dutyValue));
     } else {
-        motor_channel_set(channelB, 0);
-        motor_channel_set(channelA, dutyValue);
+        skid_motor_channel_set(motor->b.channel, 0);
+        skid_motor_channel_set(motor->a.channel, dutyValue);
     }
+}
+
+void skid_servo_set(const skid_servo_t *servo, float angle) {
+    ESP_ERROR_CHECK(iot_servo_write_angle(SKID_SERVO_SPEED_MODE, servo->channel, angle));
 }
