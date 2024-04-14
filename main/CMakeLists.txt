@@ -4,8 +4,12 @@ idf_component_register(
         SRCS
         app_main.c
         my_platform.c
-        skid.c
+        skid_power.c
+        skid_motion.c
+        skid_leds.c
+
         INCLUDE_DIRS .
+
         REQUIRES
         freertos
         nvs_flash

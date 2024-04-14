@@ -1,9 +1,7 @@
 #include <stdlib.h>
-
 #include <btstack_port_esp32.h>
 #include <btstack_run_loop.h>
 #include <uni.h>
-
 #include "sdkconfig.h"
 #include "skid.h"
 
@@ -17,7 +15,9 @@ struct uni_platform *get_my_platform(void);
 
 void app_main(void) {
     // Configure skid first
-    skid_init();
+    skid_power(true);
+    skid_motion_init();
+    skid_leds_init();
 
     // Configure BTstack for ESP32 VHCI Controller
     btstack_init();

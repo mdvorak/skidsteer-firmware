@@ -34,6 +34,12 @@ dependencies:
     source:
       type: service
     version: 0.5.3
+  espressif/led_strip:
+    component_hash: 67d2744208e9c12d8b1992d21c979396c1726e57cb7e35e7c171c515be20f8ea
+    source:
+      storage_url: file:///C:/Users/mikee/.espressif/registry
+      type: service
+    version: 2.5.3
   idf:
     component_hash: null
     source:
@@ -46,6 +52,6 @@ dependencies:
       path: components/motor/servo
       type: git
     version: 5def8ba85aeb16cc3920898aff90e56a4968ac1a
-manifest_hash: c4e0973ad08b51dad4eefb9bcd97937d3960378ca9133e23610114beb2794b4c
+manifest_hash: 0c21ed01865de9be7b7a067db63d4d58c91ffa857b52cb004d588aa65121474e
 target: esp32
 version: 1.0.0
