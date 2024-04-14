@@ -27,11 +27,17 @@ void skid_power(bool enabled);
 
 void skid_motion_init();
 
-void skid_leds_init();
-
 bool skid_motor_set(const skid_motor_t *motor, double dutyPercent);
 
 void skid_servo_set(const skid_servo_t *servo, double dutyPercent);
+
+void skid_leds_init();
+
+void skids_leds_set(uint32_t red, uint32_t green, uint32_t blue);
+
+void skid_leds_preset(uint32_t preset);
+
+void skid_leds_cycle();
 
 #ifdef __cplusplus
 } // extern "C"

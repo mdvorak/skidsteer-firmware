@@ -25,6 +25,7 @@ static void my_platform_init(int argc, const char **argv) {
 
     // Configure WiiMote
     wii_force_flags(WII_FLAGS_NATIVE);
+    skids_leds_set(0, 120, 0);
 
     logi("custom: init()\n");
 }
@@ -42,17 +43,20 @@ static void my_platform_on_init_complete(void) {
 
     // Listen
     uni_bt_enable_new_connections_unsafe(true);
+    skids_leds_set(0, 0, 180);
 }
 
 static void my_platform_on_device_connected(uni_hid_device_t *d) {
     logi("custom: device connected: %p\n", d);
     // Only one controller allowed
     uni_bt_enable_new_connections_unsafe(false);
+    skid_leds_preset(2);
 }
 
 static void my_platform_on_device_disconnected(uni_hid_device_t *d) {
     logi("custom: device disconnected: %p\n", d);
     uni_bt_enable_new_connections_unsafe(true);
+    skids_leds_set(0, 0, 255);
 }
 
 static uni_error_t my_platform_on_device_ready(uni_hid_device_t *d) {
@@ -129,6 +133,18 @@ static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
         activity = true;
     } else {
         skid_servo_set(&SKID_SERVO_AUX, 0);
+    }
+
+    // Led
+    static bool ledCyclePressed = false;
+    if (gp->misc_buttons & MISC_BUTTON_SYSTEM) {
+        if (!ledCyclePressed) {
+            ledCyclePressed = true;
+            skid_leds_cycle();
+            activity = true;
+        }
+    } else {
+        ledCyclePressed = false;
     }
 
     if (activity) {
