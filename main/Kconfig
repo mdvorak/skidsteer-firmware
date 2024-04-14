@@ -33,3 +33,10 @@ config SKID_LEDS_PIN
 
 config SKID_SERVO_STEP_MS
     int "Servo step in milliseconds"
+
+config SKID_STATUS_LED_PIN
+    int "Optional GPIO for the status LED"
+
+config SKID_STATUS_LED_VALUE
+    int "Value for the status LED when on"
+    default 1

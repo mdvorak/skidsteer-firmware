@@ -2,6 +2,7 @@
 #include <btstack_port_esp32.h>
 #include <btstack_run_loop.h>
 #include <uni.h>
+#include <driver/gpio.h>
 #include "sdkconfig.h"
 #include "skid.h"
 
@@ -23,6 +24,13 @@ void app_main(void) {
     btstack_init();
     uni_platform_set_custom(get_my_platform());
     uni_init(0, NULL);
+
+    // Status led
+#if defined(CONFIG_SKID_STATUS_LED_PIN) && defined(CONFIG_SKID_STATUS_LED_VALUE)
+    const gpio_num_t statusLedPin = CONFIG_SKID_STATUS_LED_PIN;
+    gpio_set_direction(statusLedPin, GPIO_MODE_OUTPUT);
+    gpio_set_level(statusLedPin, CONFIG_SKID_STATUS_LED_VALUE);
+#endif
 
     // Does not return.
     btstack_run_loop_execute();
