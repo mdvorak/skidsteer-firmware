@@ -47,21 +47,23 @@ static const skid_motor_t *SKID_MOTORS[] = {&SKID_MOTOR_LEFT, &SKID_MOTOR_RIGHT,
 static const ledc_mode_t SKID_SERVO_SPEED_MODE = LEDC_LOW_SPEED_MODE;
 static const ledc_timer_t SKID_SERVO_TIMER = LEDC_TIMER_1;
 static const uint16_t SKID_SERVO_FREQ = 50;
-static const uint16_t SKID_SERVO_MIN_WIDTH_US = 1000;
-static const uint16_t SKID_SERVO_MAX_WIDTH_US = 2000;
-static const double SERVO_STEP = 1.0;
+static const uint16_t SKID_SERVO_MIN_WIDTH_US = 500;
+static const uint16_t SKID_SERVO_MAX_WIDTH_US = 2500;
+static const double SERVO_STEP = 3.0;
 static const int64_t SERVO_STEP_INTERVAL_US = (CONFIG_SKID_SERVO_STEP_MS) * 1000ll; // 100ms
-static esp_timer_handle_t servo_timer;
-static float bucket_angle = 45;
-static float bucket_movement = 0;
-static float aux_angle = 90;
-static float aux_movement = 0;
+static esp_timer_handle_t servo_timer = NULL;
+static volatile float bucket_angle = 45;
+static volatile float bucket_movement = 0;
+static volatile float aux_angle = 120;
+static volatile float aux_movement = 0;
 
 typedef struct skid_servo {
     ledc_channel_t channel;
     gpio_num_t pin;
-    float *angle;
-    float *movement;
+    volatile float *angle;
+    volatile float *movement;
+    float min;
+    float max;
 } skid_servo_t;
 
 const skid_servo_t SKID_SERVO_BUCKET = {
@@ -69,12 +71,16 @@ const skid_servo_t SKID_SERVO_BUCKET = {
         .pin = (CONFIG_SKID_SERVO_BUCKET_PIN),
         .angle = &bucket_angle,
         .movement = &bucket_movement,
+        .min = (CONFIG_SKID_SERVO_BUCKET_MIN_DEG),
+        .max = (CONFIG_SKID_SERVO_BUCKET_MAX_DEG),
 };
 const skid_servo_t SKID_SERVO_AUX = {
         .channel = LEDC_CHANNEL_7,
         .pin = (CONFIG_SKID_SERVO_AUX_PIN),
         .angle = &aux_angle,
         .movement = &aux_movement,
+        .min = (CONFIG_SKID_SERVO_AUX_MIN_DEG),
+        .max = (CONFIG_SKID_SERVO_AUX_MAX_DEG),
 };
 
 
@@ -137,6 +143,9 @@ void skid_motion_init() {
     ESP_ERROR_CHECK(iot_servo_init(SKID_SERVO_SPEED_MODE, &servoConfig));
 
     // Start timer
+    bucket_movement = 0;
+    aux_movement = 0;
+
     esp_timer_create_args_t servoTimerArgs = {
             .callback = (esp_timer_cb_t) skid_servo_timer_callback,
             .dispatch_method = ESP_TIMER_TASK,
@@ -185,9 +194,20 @@ void skid_servo_set(const skid_servo_t *servo, double dutyPercent) {
 static void skid_servo_update(const skid_servo_t *servo) {
     if (*servo->movement != 0) {
         float angle = *servo->angle + *servo->movement;
-        angle = CONSTRAIN(angle, 0, 180);
+
+        // Constrain and stop
+        if (angle < servo->min) {
+            angle = servo->min;
+            *servo->movement = 0;
+        } else if (angle > servo->max) {
+            angle = servo->max;
+            *servo->movement = 0;
+        }
+
+        // Update
         ESP_ERROR_CHECK(iot_servo_write_angle(SKID_SERVO_SPEED_MODE, servo->channel, angle));
         *servo->angle = angle;
+        //ESP_LOGI(TAG, "servo %d angle %f", servo->channel, angle);
     }
 }
 

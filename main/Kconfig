@@ -28,11 +28,27 @@ config SKID_SERVO_BUCKET_PIN
 config SKID_SERVO_AUX_PIN
     int "GPIO for the aux servo"
 
+config SKID_SERVO_STEP_MS
+    int "Servo step interval in milliseconds"
+
+config SKID_SERVO_BUCKET_MIN_DEG
+    int "Bucket servo minimum angle in degrees"
+    default 60
+
+config SKID_SERVO_BUCKET_MAX_DEG
+    int "Bucket servo maximum angle in degrees"
+    default 175
+
+config SKID_SERVO_AUX_MIN_DEG
+    int "Aux servo minimum angle in degrees"
+    default 5
+
+config SKID_SERVO_AUX_MAX_DEG
+    int "Aux servo maximum angle in degrees"
+    default 175
+
 config SKID_LEDS_PIN
     int "GPIO for the WS2812 LEDs"
-
-config SKID_SERVO_STEP_MS
-    int "Servo step in milliseconds"
 
 config SKID_STATUS_LED_PIN
     int "Optional GPIO for the status LED"

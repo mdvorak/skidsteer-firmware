@@ -46,7 +46,8 @@ jobs:
             build/bootloader/bootloader.bin
             build/partition_table/partition-table.bin
             build/skidsteer-firmware.bin
-            build/*flash_args
+            build/flash_args
+            build/flash_*_args
             build/flasher_args.json
           compression-level: 9
           if-no-files-found: error

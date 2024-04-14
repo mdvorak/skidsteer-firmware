@@ -1,6 +1,7 @@
 #include <string.h>
 #include <uni.h>
 #include <parser/uni_hid_parser_wii.h>
+#include <esp_log.h>
 #include "skid.h"
 
 #define CONSTRAIN(amt, low, high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
@@ -66,6 +67,8 @@ static uni_error_t my_platform_on_device_ready(uni_hid_device_t *d) {
 static const int AXIS_MAX = 360;
 
 static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
+    ESP_LOGD("custom", "on_gamepad: %x %x %x %ld/%ld", gp->dpad, gp->buttons, gp->misc_buttons, gp->axis_x, gp->axis_y);
+
     // Tracks
     if (gp->dpad & DPAD_UP) {
         skid_motor_set(&SKID_MOTOR_LEFT, 1);
@@ -111,7 +114,7 @@ static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
     // Aux
     if (gp->misc_buttons & MISC_BUTTON_START) {
         skid_servo_set(&SKID_SERVO_AUX, 1);
-    } else if (gp->buttons & MISC_BUTTON_SELECT) {
+    } else if (gp->misc_buttons & MISC_BUTTON_SELECT) {
         skid_servo_set(&SKID_SERVO_AUX, -1);
     } else {
         skid_servo_set(&SKID_SERVO_AUX, 0);
