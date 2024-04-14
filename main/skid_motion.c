@@ -16,7 +16,7 @@ static const ledc_timer_t SKID_MOTOR_TIMER = LEDC_TIMER_0;
 static const ledc_timer_bit_t SKID_MOTOR_RESOLUTION = LEDC_TIMER_12_BIT;
 static const uint32_t SKID_MOTOR_PWM_FREQ = CONFIG_SKID_MOTOR_PWM_FREQ;
 static const uint32_t SKID_MOTOR_PWM_MAX = LEDC_MAX_VALUE(SKID_MOTOR_RESOLUTION);
-static const uint32_t SKID_MOTOR_PWM_MIN = SKID_MOTOR_PWM_MAX / 3;
+static const uint32_t SKID_MOTOR_PWM_MIN = SKID_MOTOR_PWM_MAX / 4;
 
 typedef struct skid_motor_channel {
     ledc_channel_t channel;
