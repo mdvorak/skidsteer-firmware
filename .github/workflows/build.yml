@@ -32,6 +32,20 @@ jobs:
           . ${IDF_PATH}/export.sh
           idf.py build
 
+      # attach the build artifacts as a workflow run artifact
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: skidsteer-firmware-${{ matrix.idf_target }}
+          path: |
+            build/bootloader/bootloader.bin
+            build/partition_table/partition-table.bin
+            build/skidsteer-firmware.bin
+            build/*flash_args
+            build/flasher_args.json
+          compression-level: 9
+          if-no-files-found: error
+
   build-all:
     runs-on: ubuntu-latest
     needs:
