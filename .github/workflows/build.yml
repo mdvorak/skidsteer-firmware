@@ -25,6 +25,9 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Short SHA
+        run: echo "SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c 1-8)" >> $GITHUB_ENV
+
       - name: Build
         env:
           IDF_TARGET: ${{ matrix.idf_target }}
@@ -34,9 +37,7 @@ jobs:
 
       # attach the build artifacts as a workflow run artifact
       - name: Flash cmd
-        run: |
-          echo "SHORT_SHA=$(echo ${GITHUB_SHA::8})" >> $GITHUB_ENV
-          echo 'python -m esptool --chip esp32 -b 921600 --before default_reset --after hard_reset write_flash "@flash_args"' > build/flash.txt
+        run: echo 'python -m esptool --chip esp32 -b 921600 --before default_reset --after hard_reset write_flash "@flash_args"' > build/flash.txt
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
