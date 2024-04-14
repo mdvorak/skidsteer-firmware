@@ -33,11 +33,16 @@ jobs:
           idf.py build
 
       # attach the build artifacts as a workflow run artifact
+      - name: Flash cmd
+        run: |
+          echo 'python -m esptool --chip esp32 -b 921600 --before default_reset --after hard_reset write_flash "@flash_args"' > build/flash.txt
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
           name: skidsteer-firmware-${{ matrix.idf_target }}
           path: |
+            build/flash.txt
             build/bootloader/bootloader.bin
             build/partition_table/partition-table.bin
             build/skidsteer-firmware.bin
