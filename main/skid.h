@@ -19,13 +19,17 @@ extern const skid_servo_t SKID_SERVO_AUX;
 
 extern const double SKID_MOTOR_HOLD;
 
+void skid_power_init();
+
+void skid_power_report_activity();
+
 void skid_power(bool enabled);
 
 void skid_motion_init();
 
 void skid_leds_init();
 
-void skid_motor_set(const skid_motor_t *motor, double dutyPercent);
+bool skid_motor_set(const skid_motor_t *motor, double dutyPercent);
 
 void skid_servo_set(const skid_servo_t *servo, double dutyPercent);
 

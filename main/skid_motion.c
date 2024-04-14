@@ -162,12 +162,12 @@ static void skid_motor_channel_set(ledc_channel_t channel, uint32_t duty) {
     ESP_ERROR_CHECK(ledc_update_duty(SKID_MOTOR_TIMER_SPEED_MODE, channel));
 }
 
-void skid_motor_set(const skid_motor_t *motor, double dutyPercent) {
+bool skid_motor_set(const skid_motor_t *motor, double dutyPercent) {
     if (dutyPercent == SKID_MOTOR_HOLD) {
         // Hold
         skid_motor_channel_set(motor->a.channel, SKID_MOTOR_PWM_MAX);
         skid_motor_channel_set(motor->b.channel, SKID_MOTOR_PWM_MAX);
-        return;
+        return false;
     }
 
     int32_t dutyValue = (int32_t) (dutyPercent * SKID_MOTOR_PWM_MAX);
@@ -176,14 +176,17 @@ void skid_motor_set(const skid_motor_t *motor, double dutyPercent) {
         // Stop
         skid_motor_channel_set(motor->a.channel, 0);
         skid_motor_channel_set(motor->b.channel, 0);
+        return false;
     } else if (dutyValue < 0) {
         // Reverse
         skid_motor_channel_set(motor->a.channel, 0);
         skid_motor_channel_set(motor->b.channel, abs(dutyValue));
+        return true;
     } else {
         // Forward
         skid_motor_channel_set(motor->b.channel, 0);
         skid_motor_channel_set(motor->a.channel, dutyValue);
+        return true;
     }
 }
 

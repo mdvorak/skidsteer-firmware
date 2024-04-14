@@ -4,6 +4,9 @@ config SKID_MOTOR_PWM_FREQ
 config SKID_POWER_PIN
     int "GPIO that must be HIGH at all times"
 
+config SKID_POWER_TIMEOUT_S
+    int "Timeout in seconds, after which system shuts down"
+
 config SKID_MOTOR_LEFT_A_PIN
     int "GPIO for the left motor A"
 

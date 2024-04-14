@@ -16,7 +16,7 @@ struct uni_platform *get_my_platform(void);
 
 void app_main(void) {
     // Configure skid first
-    skid_power(true);
+    skid_power_init();
     skid_motion_init();
     skid_leds_init();
 

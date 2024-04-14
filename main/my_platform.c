@@ -68,20 +68,25 @@ static const int AXIS_MAX = 360;
 
 static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
     ESP_LOGD("custom", "on_gamepad: %x %x %x %ld/%ld", gp->dpad, gp->buttons, gp->misc_buttons, gp->axis_x, gp->axis_y);
+    bool activity = false;
 
     // Tracks
     if (gp->dpad & DPAD_UP) {
         skid_motor_set(&SKID_MOTOR_LEFT, 1);
         skid_motor_set(&SKID_MOTOR_RIGHT, 1);
+        activity = true;
     } else if (gp->dpad & DPAD_DOWN) {
         skid_motor_set(&SKID_MOTOR_LEFT, -1);
         skid_motor_set(&SKID_MOTOR_RIGHT, -1);
+        activity = true;
     } else if (gp->dpad & DPAD_LEFT) {
         skid_motor_set(&SKID_MOTOR_LEFT, -1);
         skid_motor_set(&SKID_MOTOR_RIGHT, 1);
+        activity = true;
     } else if (gp->dpad & DPAD_RIGHT) {
         skid_motor_set(&SKID_MOTOR_LEFT, 1);
         skid_motor_set(&SKID_MOTOR_RIGHT, -1);
+        activity = true;
     } else {
         int32_t axisX = CONSTRAIN(gp->axis_x, -AXIS_MAX, AXIS_MAX);
         int32_t axisY = CONSTRAIN(gp->axis_y, -AXIS_MAX, AXIS_MAX);
@@ -89,15 +94,17 @@ static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
         double leftMotor = (double) CONSTRAIN(-axisY + axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
         double rightMotor = (double) CONSTRAIN(-axisY - axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
 
-        skid_motor_set(&SKID_MOTOR_LEFT, leftMotor);
-        skid_motor_set(&SKID_MOTOR_RIGHT, rightMotor);
+        activity |= skid_motor_set(&SKID_MOTOR_LEFT, leftMotor);
+        activity |= skid_motor_set(&SKID_MOTOR_RIGHT, rightMotor);
     }
 
     // Arm
     if (gp->buttons & BUTTON_A) {
         skid_motor_set(&SKID_MOTOR_ARM, 1);
+        activity = true;
     } else if (gp->buttons & BUTTON_B) {
         skid_motor_set(&SKID_MOTOR_ARM, -1);
+        activity = true;
     } else {
         skid_motor_set(&SKID_MOTOR_ARM, SKID_MOTOR_HOLD);
     }
@@ -105,8 +112,10 @@ static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
     // Bucket
     if (gp->buttons & BUTTON_X || gp->buttons & BUTTON_TRIGGER_L) {
         skid_servo_set(&SKID_SERVO_BUCKET, 1);
+        activity = true;
     } else if (gp->buttons & BUTTON_Y || gp->buttons & BUTTON_SHOULDER_L) {
         skid_servo_set(&SKID_SERVO_BUCKET, -1);
+        activity = true;
     } else {
         skid_servo_set(&SKID_SERVO_BUCKET, 0);
     }
@@ -114,10 +123,16 @@ static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
     // Aux
     if (gp->misc_buttons & MISC_BUTTON_START) {
         skid_servo_set(&SKID_SERVO_AUX, 1);
+        activity = true;
     } else if (gp->misc_buttons & MISC_BUTTON_SELECT) {
         skid_servo_set(&SKID_SERVO_AUX, -1);
+        activity = true;
     } else {
         skid_servo_set(&SKID_SERVO_AUX, 0);
+    }
+
+    if (activity) {
+        skid_power_report_activity();
     }
 }
 
