@@ -28,7 +28,6 @@ jobs:
       - name: Build
         env:
           IDF_TARGET: ${{ matrix.idf_target }}
-        working-directory: example
         run: |
           . ${IDF_PATH}/export.sh
           idf.py build
