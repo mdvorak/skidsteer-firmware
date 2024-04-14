@@ -3,6 +3,8 @@
 #include <parser/uni_hid_parser_wii.h>
 #include "skid.h"
 
+#define constrain(amt, low, high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+
 // Custom "instance"
 typedef struct my_platform_instance_s {
     uni_gamepad_seat_t gamepad_seat;  // which "seat" is being used
@@ -61,8 +63,62 @@ static uni_error_t my_platform_on_device_ready(uni_hid_device_t *d) {
     return UNI_ERROR_SUCCESS;
 }
 
-static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
+static const int AXIS_MAX = 360;
+static const float SERVO_STEP = 1;
+static float bucket_movement = 0;
+static float aux_movement = 0;
 
+static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
+    // Tracks
+    if (gp->dpad & DPAD_UP) {
+        skid_motor_set(&SKID_MOTOR_LEFT, 1);
+        skid_motor_set(&SKID_MOTOR_RIGHT, 1);
+    } else if (gp->dpad & DPAD_DOWN) {
+        skid_motor_set(&SKID_MOTOR_LEFT, -1);
+        skid_motor_set(&SKID_MOTOR_RIGHT, -1);
+    } else if (gp->dpad & DPAD_LEFT) {
+        skid_motor_set(&SKID_MOTOR_LEFT, -1);
+        skid_motor_set(&SKID_MOTOR_RIGHT, 1);
+    } else if (gp->dpad & DPAD_RIGHT) {
+        skid_motor_set(&SKID_MOTOR_LEFT, 1);
+        skid_motor_set(&SKID_MOTOR_RIGHT, -1);
+    } else {
+        int32_t axisX = constrain(gp->axis_x, -AXIS_MAX, AXIS_MAX);
+        int32_t axisY = constrain(gp->axis_y, -AXIS_MAX, AXIS_MAX);
+
+        double leftMotor = (double) constrain(-axisY + axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
+        double rightMotor = (double) constrain(-axisY - axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
+
+        skid_motor_set(&SKID_MOTOR_LEFT, leftMotor);
+        skid_motor_set(&SKID_MOTOR_RIGHT, rightMotor);
+    }
+
+    // Arm
+    if (gp->buttons & BUTTON_A) {
+        skid_motor_set(&SKID_MOTOR_ARM, 1);
+    } else if (gp->buttons & BUTTON_B) {
+        skid_motor_set(&SKID_MOTOR_ARM, -1);
+    } else {
+        skid_motor_set(&SKID_MOTOR_ARM, SKID_MOTOR_HOLD);
+    }
+
+    // Bucket
+    if (gp->buttons & BUTTON_X || gp->buttons & BUTTON_TRIGGER_L) {
+        bucket_movement = SERVO_STEP;
+    } else if (gp->buttons & BUTTON_Y || gp->buttons & BUTTON_SHOULDER_L) {
+        bucket_movement = -SERVO_STEP;
+    } else {
+        bucket_movement = 0;
+    }
+
+    // Aux
+    if (gp->misc_buttons & MISC_BUTTON_START) {
+        aux_movement = SERVO_STEP;
+    } else if (gp->buttons & MISC_BUTTON_SELECT) {
+        aux_movement = -SERVO_STEP;
+    } else {
+        aux_movement = 0;
+    }
 }
 
 static void my_platform_on_controller_data(uni_hid_device_t *d, uni_controller_t *ctl) {

@@ -7,14 +7,15 @@
 
 static const char *TAG = "skid_motion";
 #define LEDC_MAX_VALUE(resolution) ((1 << resolution) - 1)
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 // Motors
 static const ledc_mode_t SKID_MOTOR_TIMER_SPEED_MODE = 0; // 0 is HIGH_SPEED_MODE, if available, otherwise its LOW_SPEED_MODE
 static const ledc_timer_t SKID_MOTOR_TIMER = LEDC_TIMER_0;
 static const ledc_timer_bit_t SKID_MOTOR_RESOLUTION = LEDC_TIMER_12_BIT;
-static const uint32_t SKID_MOTOR_PWM_MAX = LEDC_MAX_VALUE(SKID_MOTOR_RESOLUTION);
 static const uint32_t SKID_MOTOR_PWM_FREQ = CONFIG_SKID_MOTOR_PWM_FREQ;
+static const uint32_t SKID_MOTOR_PWM_MAX = LEDC_MAX_VALUE(SKID_MOTOR_RESOLUTION);
+static const uint32_t SKID_MOTOR_PWM_MIN = SKID_MOTOR_PWM_MAX / 3;
 
 typedef struct skid_motor_channel {
     ledc_channel_t channel;
@@ -26,7 +27,7 @@ typedef struct skid_motor {
     skid_motor_channel_t b;
 } skid_motor_t;
 
-const float SKID_MOTOR_HOLD = 999;
+const double SKID_MOTOR_HOLD = 9.0;
 const skid_motor_t SKID_MOTOR_LEFT = {
         .a = {LEDC_CHANNEL_0, (CONFIG_SKID_MOTOR_LEFT_A_PIN)},
         .b = {LEDC_CHANNEL_1, (CONFIG_SKID_MOTOR_LEFT_B_PIN)},
@@ -123,12 +124,13 @@ void skid_motion_init() {
 }
 
 static void skid_motor_channel_set(ledc_channel_t channel, uint32_t duty) {
-    ESP_ERROR_CHECK(ledc_set_duty(SKID_MOTOR_TIMER_SPEED_MODE, channel, MAX(duty, SKID_MOTOR_PWM_MAX)));
+    ESP_ERROR_CHECK(ledc_set_duty(SKID_MOTOR_TIMER_SPEED_MODE, channel, MIN(duty, SKID_MOTOR_PWM_MAX)));
     ESP_ERROR_CHECK(ledc_update_duty(SKID_MOTOR_TIMER_SPEED_MODE, channel));
 }
 
 void skid_motor_set(const skid_motor_t *motor, double dutyPercent) {
     if (dutyPercent == SKID_MOTOR_HOLD) {
+        // Hold
         skid_motor_channel_set(motor->a.channel, SKID_MOTOR_PWM_MAX);
         skid_motor_channel_set(motor->b.channel, SKID_MOTOR_PWM_MAX);
         return;
@@ -136,10 +138,16 @@ void skid_motor_set(const skid_motor_t *motor, double dutyPercent) {
 
     int32_t dutyValue = (int32_t) (dutyPercent * SKID_MOTOR_PWM_MAX);
 
-    if (dutyValue < 0) {
+    if (abs(dutyValue) < SKID_MOTOR_PWM_MIN) {
+        // Stop
+        skid_motor_channel_set(motor->a.channel, 0);
+        skid_motor_channel_set(motor->b.channel, 0);
+    } else if (dutyValue < 0) {
+        // Reverse
         skid_motor_channel_set(motor->a.channel, 0);
         skid_motor_channel_set(motor->b.channel, abs(dutyValue));
     } else {
+        // Forward
         skid_motor_channel_set(motor->b.channel, 0);
         skid_motor_channel_set(motor->a.channel, dutyValue);
     }

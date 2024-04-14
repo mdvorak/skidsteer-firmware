@@ -17,7 +17,7 @@ extern const skid_motor_t SKID_MOTOR_ARM;
 extern const skid_servo_t SKID_SERVO_BUCKET;
 extern const skid_servo_t SKID_SERVO_AUX;
 
-extern const float SKID_MOTOR_HOLD;
+extern const double SKID_MOTOR_HOLD;
 
 void skid_power(bool enabled);
 
