@@ -30,3 +30,6 @@ config SKID_SERVO_AUX_PIN
 
 config SKID_LEDS_PIN
     int "GPIO for the WS2812 LEDs"
+
+config SKID_SERVO_STEP_MS
+    int "Servo step in milliseconds"

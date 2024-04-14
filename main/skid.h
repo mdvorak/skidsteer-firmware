@@ -27,7 +27,7 @@ void skid_leds_init();
 
 void skid_motor_set(const skid_motor_t *motor, double dutyPercent);
 
-void skid_servo_set(const skid_servo_t *servo, float angle);
+void skid_servo_set(const skid_servo_t *servo, double dutyPercent);
 
 #ifdef __cplusplus
 } // extern "C"

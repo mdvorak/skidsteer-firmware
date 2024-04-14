@@ -3,7 +3,7 @@
 #include <parser/uni_hid_parser_wii.h>
 #include "skid.h"
 
-#define constrain(amt, low, high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+#define CONSTRAIN(amt, low, high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 
 // Custom "instance"
 typedef struct my_platform_instance_s {
@@ -64,9 +64,6 @@ static uni_error_t my_platform_on_device_ready(uni_hid_device_t *d) {
 }
 
 static const int AXIS_MAX = 360;
-static const float SERVO_STEP = 1;
-static float bucket_movement = 0;
-static float aux_movement = 0;
 
 static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
     // Tracks
@@ -83,11 +80,11 @@ static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
         skid_motor_set(&SKID_MOTOR_LEFT, 1);
         skid_motor_set(&SKID_MOTOR_RIGHT, -1);
     } else {
-        int32_t axisX = constrain(gp->axis_x, -AXIS_MAX, AXIS_MAX);
-        int32_t axisY = constrain(gp->axis_y, -AXIS_MAX, AXIS_MAX);
+        int32_t axisX = CONSTRAIN(gp->axis_x, -AXIS_MAX, AXIS_MAX);
+        int32_t axisY = CONSTRAIN(gp->axis_y, -AXIS_MAX, AXIS_MAX);
 
-        double leftMotor = (double) constrain(-axisY + axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
-        double rightMotor = (double) constrain(-axisY - axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
+        double leftMotor = (double) CONSTRAIN(-axisY + axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
+        double rightMotor = (double) CONSTRAIN(-axisY - axisX, -AXIS_MAX, AXIS_MAX) / (double) AXIS_MAX;
 
         skid_motor_set(&SKID_MOTOR_LEFT, leftMotor);
         skid_motor_set(&SKID_MOTOR_RIGHT, rightMotor);
@@ -104,20 +101,20 @@ static void my_platform_on_gamepad(const uni_gamepad_t *gp) {
 
     // Bucket
     if (gp->buttons & BUTTON_X || gp->buttons & BUTTON_TRIGGER_L) {
-        bucket_movement = SERVO_STEP;
+        skid_servo_set(&SKID_SERVO_BUCKET, 1);
     } else if (gp->buttons & BUTTON_Y || gp->buttons & BUTTON_SHOULDER_L) {
-        bucket_movement = -SERVO_STEP;
+        skid_servo_set(&SKID_SERVO_BUCKET, -1);
     } else {
-        bucket_movement = 0;
+        skid_servo_set(&SKID_SERVO_BUCKET, 0);
     }
 
     // Aux
     if (gp->misc_buttons & MISC_BUTTON_START) {
-        aux_movement = SERVO_STEP;
+        skid_servo_set(&SKID_SERVO_AUX, 1);
     } else if (gp->buttons & MISC_BUTTON_SELECT) {
-        aux_movement = -SERVO_STEP;
+        skid_servo_set(&SKID_SERVO_AUX, -1);
     } else {
-        aux_movement = 0;
+        skid_servo_set(&SKID_SERVO_AUX, 0);
     }
 }
 
