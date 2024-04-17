@@ -1,11 +1,11 @@
 dependencies:
   bluepad32:
-    component_hash: 493be6bb94e6362146bea8f6ae1b02cd8f655aa3e7ef1b9471632fb349e60a2a
+    component_hash: 785b449fabc17d2c68bbcacd359b762d567d2d0edb9b7f3e998c4c5480a34a9b
     source:
-      git: https://github.com/mdvorak/bluepad32.git
+      git: https://github.com/ricardoquesada/bluepad32.git
       path: src/components/bluepad32
       type: git
-    version: 571f7874afe97cc7eb787b41fdee08b56395f60e
+    version: 7e13707891a960c1bf56ae2272fbbd3960841a41
   btstack:
     component_hash: null
     source:
@@ -52,6 +52,6 @@ dependencies:
       path: components/motor/servo
       type: git
     version: 5def8ba85aeb16cc3920898aff90e56a4968ac1a
-manifest_hash: 0c21ed01865de9be7b7a067db63d4d58c91ffa857b52cb004d588aa65121474e
+manifest_hash: e040641bc1e84c07874bd4ab0d1afc3a8492e86003606ad8a3b46d8260f62089
 target: esp32
 version: 1.0.0

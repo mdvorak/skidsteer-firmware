@@ -7,7 +7,7 @@ dependencies:
     git: https://github.com/espressif/esp-iot-solution.git
     path: components/motor/servo
   bluepad32:
-    git: https://github.com/mdvorak/bluepad32.git
+    git: https://github.com/ricardoquesada/bluepad32.git
     path: src/components/bluepad32
   btstack:
     path: ../external/components/btstack
